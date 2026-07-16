@@ -9,6 +9,7 @@ A privacy-conscious AI wellbeing companion for grief, panic, overthinking, and t
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--5.6%20%2B%20Realtime-111111?style=flat-square&logo=openai&logoColor=white)](https://developers.openai.com/)
+[![Built with Codex](https://img.shields.io/badge/Built%20with-Codex-111111?style=flat-square&logo=openai&logoColor=white)](https://openai.com/codex/)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
 [![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)](https://railway.com/)
 [![License](https://img.shields.io/badge/License-MIT-58705d?style=flat-square)](LICENSE)
@@ -81,6 +82,31 @@ local-first tools   Realtime companion
 ```
 
 Safety copy and crisis routing do not depend on the model inventing a response. Enough applies conservative checks before AI reflection and maintains a visible boundary: AI companion, not person or therapist.
+
+## Built with Codex
+
+Enough was built by one human, but it was not built alone. I brought the lived experience, product direction, safety boundaries, and final judgment; **OpenAI Codex worked beside me as an engineering and design collaborator throughout the build**.
+
+Codex helped me:
+
+- Turn an emotionally sensitive idea into a scoped, working product architecture.
+- Implement the FastAPI backend, local-first browser experience, accounts, email verification, Web Push, and Railway deployment.
+- Integrate GPT-5.6 structured reflections and Realtime WebRTC voice sessions without exposing API credentials in the browser.
+- Debug caption delays, notification permissions, service-worker caching, SQLite persistence, modal overflow, and production health-check failures.
+- Write and run automated tests, inspect failure traces, and iterate from screenshots and hands-on feedback.
+- Challenge unsafe or misleading ideas—including impersonation, artificial dependency, clinical claims, and treating ordinary sadness as an emergency.
+- Prepare the public repository, deployment configuration, documentation, and submission narrative.
+
+The collaboration was iterative rather than one-shot generation. I tested each experience, questioned decisions, reported what felt wrong, and chose what belonged in the product. Codex inspected the shared codebase, proposed and implemented changes, verified behavior, and helped carry those decisions into production.
+
+| Layer | Role in the project |
+|---|---|
+| **Human direction** | Lived experience, problem selection, empathy, boundaries, product judgment, and final accountability |
+| **Codex collaboration** | Architecture, implementation, debugging, testing, UI iteration, documentation, and deployment support |
+| **GPT-5.6 in the app** | Bounded structured reflections that turn an overwhelming moment into clearer language and one manageable next step |
+| **OpenAI Realtime API** | Low-latency, explicitly initiated voice conversations with five original AI companions |
+
+This human–agent workflow is part of the project itself: Enough demonstrates how Codex can help a solo builder translate personal experience into a complete, non-trivial application while keeping the human responsible for its purpose and boundaries.
 
 ## Architecture
 
