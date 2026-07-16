@@ -1,0 +1,63 @@
+.voice-dialog {
+  max-height: calc(100dvh - 40px);
+  overflow: hidden;
+}
+
+.voice-shell {
+  height: min(720px, calc(100dvh - 40px));
+  min-height: 0;
+  overflow: hidden;
+}
+
+.voice-stage-copy {
+  bottom: 26px;
+}
+
+.voice-panel {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.voice-transcript {
+  min-height: 0;
+  max-height: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(82, 102, 85, .42) transparent;
+}
+
+.voice-transcript::-webkit-scrollbar {
+  width: 6px;
+}
+
+.voice-transcript::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.voice-transcript::-webkit-scrollbar-thumb {
+  background: rgba(82, 102, 85, .36);
+  border-radius: 999px;
+}
+
+.voice-transcript::-webkit-scrollbar-thumb:hover {
+  background: rgba(82, 102, 85, .58);
+}
+
+@media (max-width: 720px) {
+  .voice-dialog {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .voice-shell {
+    height: calc(100dvh - 20px);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .voice-shell::-webkit-scrollbar {
+    display: none;
+  }
+
+  .voice-stage-copy {
+    bottom: 22px;
+  }
+}

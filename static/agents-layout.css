@@ -1,0 +1,7 @@
+.agent-copy small {
+  display: -webkit-box;
+  min-height: 4.2em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
