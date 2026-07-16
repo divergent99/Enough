@@ -1,4 +1,4 @@
-﻿<div align="center">
+<div align="center">
 
 # Enough
 
@@ -13,7 +13,7 @@ A privacy-conscious AI wellbeing companion for grief, panic, overthinking, and t
 [![Railway](https://img.shields.io/badge/Deploy-Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)](https://railway.com/)
 [![License](https://img.shields.io/badge/License-MIT-58705d?style=flat-square)](LICENSE)
 
-[Live site — coming soon](https://youarenough.org) · [Report an issue](https://github.com/divergent99/Enough/issues) · [OpenAPI docs](http://localhost:8770/docs)
+[Live demo](https://web-production-bc492.up.railway.app/) · [Report an issue](https://github.com/divergent99/Enough/issues) · [OpenAPI docs](https://web-production-bc492.up.railway.app/docs)
 
 </div>
 
