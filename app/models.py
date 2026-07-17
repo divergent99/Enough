@@ -18,7 +18,7 @@ class ReflectionResponse(BaseModel):
     can_wait: list[str]
     next_step: str
     mode: str
-    safety: Literal["support", "urgent"] = "support"
+    safety: Literal["support", "urgent"]
 
 class CheckIn(BaseModel):
     mood: int = Field(ge=1, le=5)
