@@ -43,6 +43,15 @@ def send_verification_email(to,name,token,email_fn=None):
     if email_fn: return email_fn(payload)
     response=httpx.post('https://api.resend.com/emails',headers={'Authorization':f'Bearer {api_key}','Content-Type':'application/json'},json=payload,timeout=20)
     response.raise_for_status(); return response.json()
+def send_password_reset_email(to,name,token,email_fn=None):
+    api_key=os.getenv('RESEND_API_KEY'); sender=os.getenv('EMAIL_FROM'); base=os.getenv('APP_BASE_URL')
+    if not(api_key and sender and base): raise RuntimeError('Email delivery is not configured')
+    url=f"{base.rstrip('/')}/?reset_token={token}"
+    payload={"from":sender,"to":[to],"subject":"Reset your Enough password","text":f"Hello {name},\n\nReset your password: {url}\n\nThis link expires in 1 hour.","html":f"<div style='font-family:Georgia,serif;max-width:560px;margin:auto;padding:32px;color:#292820'><p style='font:12px Arial,sans-serif;letter-spacing:.14em'>ENOUGH</p><h1 style='font-weight:400'>Choose a new password</h1><p style='font-size:18px;line-height:1.65'>A password reset was requested for your Enough account.</p><p><a href='{html.escape(url)}' style='display:inline-block;padding:13px 20px;background:#526655;color:white;text-decoration:none;border-radius:999px'>Reset my password</a></p><p style='font:12px Arial,sans-serif;color:#716d64;margin-top:32px'>This single-use link expires in 1 hour. If you did not request it, your password has not changed.</p></div>"}
+    if email_fn: return email_fn(payload)
+    response=httpx.post('https://api.resend.com/emails',headers={'Authorization':f'Bearer {api_key}','Content-Type':'application/json'},json=payload,timeout=20)
+    response.raise_for_status(); return response.json()
+
 def send_email(to,name,title,body,user_id,email_fn=None):
     api_key=os.getenv('RESEND_API_KEY'); sender=os.getenv('EMAIL_FROM')
     if not(api_key and sender): raise RuntimeError('Email delivery is not configured')

@@ -38,7 +38,7 @@ def test_grounding_interaction_assets_are_cache_busted():
     page=client.get('/').text
     css=client.get('/static/interaction-fix.css').text
     script=client.get('/static/app.js').text
-    assert 'app.js?v=13' in page and '[hidden]{display:none!important}' in css
+    assert 'app.js?v=14' in page and '[hidden]{display:none!important}' in css
     assert 'startExercise' in script and "$('exerciseNext').addEventListener" in script
 def test_notification_diagnostic_uses_direct_service_worker_api():
     script=client.get('/static/app.js').text
@@ -159,3 +159,53 @@ def test_realtime_session_reports_missing_api_configuration():
     assert isolated.post('/api/account/register',json={'email':email,'name':'Voice','password':'a-safe-password'}).status_code==200
     response=isolated.post('/api/realtime/session',headers={'Content-Type':'application/sdp'},content='v=0')
     assert response.status_code==503 and 'OPENAI_API_KEY' in response.json()['detail']
+
+def test_duplicate_email_is_rejected_case_insensitively(monkeypatch):
+    monkeypatch.setattr('app.main.send_verification_email',lambda *args,**kwargs: {'id':'verification'})
+    isolated=TestClient(app)
+    email=f"duplicate-{uuid.uuid4().hex[:8]}@example.com"
+    assert isolated.post('/api/account/register',json={'email':email,'name':'First','password':'first-safe-password'}).status_code==200
+    duplicate=isolated.post('/api/account/register',json={'email':email.upper(),'name':'Second','password':'second-safe-password'})
+    assert duplicate.status_code==409
+    assert duplicate.json()['detail']=='An account with this email already exists'
+
+
+def test_registration_reports_verification_delivery_failure(monkeypatch):
+    def fail_delivery(*args,**kwargs): raise RuntimeError('provider rejected request')
+    monkeypatch.setattr('app.main.send_verification_email',fail_delivery)
+    isolated=TestClient(app)
+    email=f"delivery-{uuid.uuid4().hex[:8]}@example.com"
+    response=isolated.post('/api/account/register',json={'email':email,'name':'Delivery','password':'a-safe-password'})
+    assert response.status_code==200
+    assert response.json()['verification_sent'] is False
+    assert 'verification email could not be sent' in isolated.get('/static/app.js').text
+
+
+def test_password_reset_is_private_single_use_and_invalidates_sessions(monkeypatch):
+    isolated=TestClient(app)
+    email=f"reset-{uuid.uuid4().hex[:8]}@example.com"
+    old_password='an-old-safe-password'
+    new_password='a-new-safe-password'
+    isolated.post('/api/account/register',json={'email':email,'name':'Reset','password':old_password})
+    captured={}
+    monkeypatch.setattr('app.main.send_password_reset_email',lambda to,name,token: captured.update(to=to,name=name,token=token))
+    accepted=isolated.post('/api/account/password-reset/request',json={'email':email})
+    unknown=isolated.post('/api/account/password-reset/request',json={'email':f"unknown-{uuid.uuid4().hex}@example.com"})
+    assert accepted.status_code==200 and unknown.status_code==200
+    assert accepted.json()==unknown.json()
+    assert captured['to']==email and captured['token']
+    completed=isolated.post('/api/account/password-reset/complete',json={'token':captured['token'],'password':new_password})
+    assert completed.status_code==200
+    assert isolated.get('/api/account/me').status_code==401
+    assert isolated.post('/api/account/login',json={'email':email,'password':old_password}).status_code==401
+    assert isolated.post('/api/account/login',json={'email':email,'password':new_password}).status_code==200
+    reused=isolated.post('/api/account/password-reset/complete',json={'token':captured['token'],'password':'another-safe-password'})
+    assert reused.status_code==400
+
+
+def test_password_reset_ui_is_present():
+    page=client.get('/').text
+    script=client.get('/static/app.js').text
+    assert 'id="forgotPassword"' in page and 'id="passwordDialog"' in page
+    assert '/api/account/password-reset/request' in script
+    assert '/api/account/password-reset/complete' in script

@@ -1,7 +1,7 @@
 from pathlib import Path
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-import hashlib, json, os, sqlite3
+import hashlib, json, logging, os, sqlite3
 from typing import Literal
 import httpx
 from fastapi import Cookie, Depends, FastAPI, Header, HTTPException, Request, Response
@@ -9,10 +9,11 @@ from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from .companion import reflect
 from .models import ReflectionRequest, ReflectionResponse
-from .models import AccountCreate, AccountLogin, NotificationPreferences, PushSubscription
-from .accounts import authenticate, create_session, create_user, delete_session, get_preferences, init_db, remove_subscription, save_preferences, save_subscription, session_user, disable_notifications, notification_user, create_email_verification, delete_email_verification, verification_on_cooldown, verify_email
-from .notifications import send_due_notifications, start_scheduler, stop_scheduler, valid_unsubscribe_token, send_email, send_verification_email
+from .models import AccountCreate, AccountLogin, NotificationPreferences, PasswordResetComplete, PasswordResetRequest, PushSubscription
+from .accounts import authenticate, create_password_reset, create_session, create_user, delete_password_reset, delete_session, get_preferences, init_db, remove_subscription, reset_password, save_preferences, save_subscription, session_user, disable_notifications, notification_user, create_email_verification, delete_email_verification, verification_on_cooldown, verify_email
+from .notifications import send_due_notifications, send_password_reset_email, start_scheduler, stop_scheduler, valid_unsubscribe_token, send_email, send_verification_email
 
+logger=logging.getLogger('enough')
 ROOT=Path(__file__).resolve().parent.parent
 if os.getenv("ENOUGH_SKIP_DOTENV")!="1": load_dotenv(ROOT/".env",override=True)
 STATIC=ROOT/"static"
@@ -76,7 +77,9 @@ def register(data:AccountCreate,response:Response):
     except sqlite3.IntegrityError:raise HTTPException(409,"An account with this email already exists")
     verification_sent=False; token=create_email_verification(user['id'])
     try: send_verification_email(user['email'],user['name'],token); verification_sent=True
-    except Exception: delete_email_verification(token)
+    except Exception as exc:
+        delete_email_verification(token)
+        logger.warning("Verification email delivery failed for user_id=%s: %s",user['id'],exc)
     response.set_cookie(COOKIE_NAME,create_session(user['id']),httponly=True,samesite="lax",secure=os.getenv('COOKIE_SECURE','false').lower()=='true',max_age=2592000,path='/'); return {**user,"verification_sent":verification_sent}
 
 @app.post("/api/account/login")
@@ -119,8 +122,26 @@ def resend_verification(user=Depends(current_user)):
     token=create_email_verification(user['id'])
     try: send_verification_email(user['email'],user['name'],token)
     except Exception as exc:
-        delete_email_verification(token); raise HTTPException(503,"Verification email could not be sent. Check the email configuration.") from exc
+        delete_email_verification(token)
+        logger.warning("Verification email resend failed for user_id=%s: %s",user['id'],exc)
+        raise HTTPException(503,"Verification email could not be sent. Please try again shortly.") from exc
     return {"status":"sent","recipient":user['email']}
+
+@app.post("/api/account/password-reset/request")
+def request_password_reset(data:PasswordResetRequest):
+    reset=create_password_reset(data.email)
+    if reset and not reset.get('cooldown'):
+        try: send_password_reset_email(reset['email'],reset['name'],reset['token'])
+        except Exception as exc:
+            delete_password_reset(reset['token'])
+            logger.warning("Password reset email delivery failed for user_id=%s: %s",reset['id'],exc)
+    return {"status":"accepted","message":"If an Enough account exists for that email, a reset link will arrive shortly."}
+
+@app.post("/api/account/password-reset/complete")
+def complete_password_reset(data:PasswordResetComplete,response:Response):
+    if not reset_password(data.token,data.password): raise HTTPException(400,"This password reset link is invalid or has expired")
+    response.delete_cookie(COOKIE_NAME,path='/')
+    return {"status":"password-updated"}
 
 @app.get("/api/account/verify-email",response_class=HTMLResponse)
 def verify_email_address(token:str):

@@ -1,11 +1,13 @@
-﻿#accountDialog {
+#accountDialog,
+#passwordDialog {
   width: min(700px, calc(100% - 32px));
   max-width: 700px;
   max-height: calc(100dvh - 32px);
   overflow: hidden;
 }
 
-#accountForm {
+#accountForm,
+#passwordForm {
   max-height: calc(100dvh - 34px);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -14,24 +16,41 @@
   scrollbar-color: rgba(82, 102, 85, .38) transparent;
 }
 
-#accountForm::-webkit-scrollbar { width: 6px; }
-#accountForm::-webkit-scrollbar-track { background: transparent; }
-#accountForm::-webkit-scrollbar-thumb {
+#accountForm::-webkit-scrollbar,
+#passwordForm::-webkit-scrollbar { width: 6px; }
+#accountForm::-webkit-scrollbar-track,
+#passwordForm::-webkit-scrollbar-track { background: transparent; }
+#accountForm::-webkit-scrollbar-thumb,
+#passwordForm::-webkit-scrollbar-thumb {
   background: rgba(82, 102, 85, .34);
   border-radius: 999px;
 }
-#accountForm::-webkit-scrollbar-thumb:hover { background: rgba(82, 102, 85, .56); }
+#accountForm::-webkit-scrollbar-thumb:hover,
+#passwordForm::-webkit-scrollbar-thumb:hover { background: rgba(82, 102, 85, .56); }
 
 @media (max-width: 700px) {
-  #accountDialog {
+  #accountDialog,
+#passwordDialog {
     width: calc(100% - 20px);
     max-height: calc(100dvh - 20px);
     border-radius: 24px;
   }
-  #accountForm {
+  #accountForm,
+#passwordForm {
     max-height: calc(100dvh - 22px);
     padding: 30px 24px;
     scrollbar-width: none;
   }
-  #accountForm::-webkit-scrollbar { display: none; }
+  #accountForm::-webkit-scrollbar,
+#passwordForm::-webkit-scrollbar { display: none; }
 }
+
+#passwordForm label {
+  display: block;
+  margin: 20px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+#passwordForm label span { opacity: .7; }
+#passwordForm input { font: 16px "DM Sans"; }

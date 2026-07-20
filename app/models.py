@@ -34,6 +34,13 @@ class AccountLogin(BaseModel):
     email: str = Field(min_length=5,max_length=254)
     password: str = Field(min_length=1,max_length=128)
 
+class PasswordResetRequest(BaseModel):
+    email: str = Field(min_length=5,max_length=254,pattern=r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+class PasswordResetComplete(BaseModel):
+    token: str = Field(min_length=20,max_length=256)
+    password: str = Field(min_length=10,max_length=128)
+
 class PushSubscription(BaseModel):
     endpoint: str = Field(min_length=10,max_length=2048)
     expirationTime: int | None = None

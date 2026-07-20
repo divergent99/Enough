@@ -10,7 +10,7 @@ def connection():
 
 def init_db():
     with connection() as db:
-        db.executescript("""CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,email TEXT UNIQUE NOT NULL,name TEXT NOT NULL,password_hash TEXT NOT NULL,created_at TEXT NOT NULL);CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,user_id INTEGER NOT NULL,expires_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);CREATE TABLE IF NOT EXISTS push_subscriptions(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL,endpoint TEXT UNIQUE NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);CREATE TABLE IF NOT EXISTS notification_preferences(user_id INTEGER PRIMARY KEY,enabled INTEGER NOT NULL DEFAULT 0,theme TEXT NOT NULL DEFAULT 'gentle',frequency TEXT NOT NULL DEFAULT 'daily',time_local TEXT NOT NULL DEFAULT '09:00',timezone TEXT NOT NULL DEFAULT 'UTC',delivery TEXT NOT NULL DEFAULT 'in-app',last_sent_at TEXT,updated_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);CREATE TABLE IF NOT EXISTS email_verification_tokens(token_hash TEXT PRIMARY KEY,user_id INTEGER NOT NULL,expires_at TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);""")
+        db.executescript("""CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY,email TEXT UNIQUE NOT NULL,name TEXT NOT NULL,password_hash TEXT NOT NULL,created_at TEXT NOT NULL);CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,user_id INTEGER NOT NULL,expires_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);CREATE TABLE IF NOT EXISTS push_subscriptions(id INTEGER PRIMARY KEY,user_id INTEGER NOT NULL,endpoint TEXT UNIQUE NOT NULL,payload TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);CREATE TABLE IF NOT EXISTS notification_preferences(user_id INTEGER PRIMARY KEY,enabled INTEGER NOT NULL DEFAULT 0,theme TEXT NOT NULL DEFAULT 'gentle',frequency TEXT NOT NULL DEFAULT 'daily',time_local TEXT NOT NULL DEFAULT '09:00',timezone TEXT NOT NULL DEFAULT 'UTC',delivery TEXT NOT NULL DEFAULT 'in-app',last_sent_at TEXT,updated_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);CREATE TABLE IF NOT EXISTS email_verification_tokens(token_hash TEXT PRIMARY KEY,user_id INTEGER NOT NULL,expires_at TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);CREATE TABLE IF NOT EXISTS password_reset_tokens(token_hash TEXT PRIMARY KEY,user_id INTEGER NOT NULL,expires_at TEXT NOT NULL,created_at TEXT NOT NULL,FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE);""")
         columns={row['name'] for row in db.execute("PRAGMA table_info(users)").fetchall()}
         if 'email_verified_at' not in columns: db.execute("ALTER TABLE users ADD COLUMN email_verified_at TEXT")
 
@@ -67,6 +67,31 @@ def verify_email(token):
         row=db.execute("SELECT user_id,expires_at FROM email_verification_tokens WHERE token_hash=?",(token_hash,)).fetchone()
         if not row or datetime.fromisoformat(row['expires_at'])<=now: return None
         db.execute("UPDATE users SET email_verified_at=? WHERE id=?",(now.isoformat(),row['user_id'])); db.execute("DELETE FROM email_verification_tokens WHERE user_id=?",(row['user_id'],)); user=db.execute("SELECT * FROM users WHERE id=?",(row['user_id'],)).fetchone(); return public_user(user)
+
+def create_password_reset(email):
+    normalized=email.lower().strip(); now=datetime.now(timezone.utc)
+    with connection() as db:
+        user=db.execute("SELECT id,email,name FROM users WHERE email=?",(normalized,)).fetchone()
+        if not user: return None
+        recent=db.execute("SELECT created_at FROM password_reset_tokens WHERE user_id=? ORDER BY created_at DESC LIMIT 1",(user['id'],)).fetchone()
+        if recent and datetime.fromisoformat(recent['created_at'])>now-timedelta(seconds=60): return {"cooldown":True,**dict(user)}
+        token=secrets.token_urlsafe(32); token_hash=hashlib.sha256(token.encode()).hexdigest()
+        db.execute("DELETE FROM password_reset_tokens WHERE user_id=?",(user['id'],))
+        db.execute("INSERT INTO password_reset_tokens(token_hash,user_id,expires_at,created_at) VALUES(?,?,?,?)",(token_hash,user['id'],(now+timedelta(hours=1)).isoformat(),now.isoformat()))
+        return {"token":token,"cooldown":False,**dict(user)}
+
+def delete_password_reset(token):
+    with connection() as db: db.execute("DELETE FROM password_reset_tokens WHERE token_hash=?",(hashlib.sha256(token.encode()).hexdigest(),))
+
+def reset_password(token,password):
+    token_hash=hashlib.sha256(token.encode()).hexdigest(); now=datetime.now(timezone.utc)
+    with connection() as db:
+        row=db.execute("SELECT user_id,expires_at FROM password_reset_tokens WHERE token_hash=?",(token_hash,)).fetchone()
+        if not row or datetime.fromisoformat(row['expires_at'])<=now: return False
+        db.execute("UPDATE users SET password_hash=? WHERE id=?",(hash_password(password),row['user_id']))
+        db.execute("DELETE FROM password_reset_tokens WHERE user_id=?",(row['user_id'],))
+        db.execute("DELETE FROM sessions WHERE user_id=?",(row['user_id'],))
+        return True
 
 def save_subscription(user_id,payload):
     endpoint=payload.get('endpoint','')
