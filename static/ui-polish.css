@@ -118,3 +118,21 @@ dialog:focus { outline: none; }
   body[data-screen]:not([data-screen="home"]) main > header > div:first-child { display: none; }
   body[data-screen]:not([data-screen="home"]) main > header { margin-bottom: 18px; }
 }
+
+/* Find support: prepared message card */
+.prepared-message {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fffaf3;
+}
+.prepared-text {
+  margin: 0 0 14px;
+  font: italic 18px/1.45 "Instrument Serif", serif;
+  color: var(--ink);
+  user-select: text;
+}
+.prepared-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.prepared-actions .soft { padding: 10px 18px; text-decoration: none; font-size: 12px; }
+.prepared-message .save-link { margin-top: 12px; padding: 0; font-size: 12px; }
