@@ -44,6 +44,7 @@
   // Light up "More" when the current screen only lives in the sheet (Memories, Plan, Companion...)
   const syncMore = () => {
     const id = document.querySelector('.screen.active')?.id;
+    if (id) body.dataset.screen = id;
     moreBtn?.classList.toggle('active', !!id && !tabScreens.has(id) && id !== 'moment' && id !== 'result');
   };
   // Observe all of <main> so screens injected later (agents.js) are covered too

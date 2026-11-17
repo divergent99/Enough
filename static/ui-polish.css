@@ -112,3 +112,9 @@ dialog:focus { outline: none; }
   .account-btn { padding: 8px 14px; font-size: 12px; }
   .section-head .soft { padding: 11px 16px; }
 }
+
+/* Phones: the big greeting only belongs on Today; other screens get straight to their content */
+@media (max-width: 700px) {
+  body[data-screen]:not([data-screen="home"]) main > header > div:first-child { display: none; }
+  body[data-screen]:not([data-screen="home"]) main > header { margin-bottom: 18px; }
+}
