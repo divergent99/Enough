@@ -1,0 +1,232 @@
+/* Sidebar: full column on desktop, top bar + slide-in drawer below 900px */
+
+/* Desktop: the panel wrapper is invisible to layout, so nav and note sit in .side as before */
+.side-panel { display: contents; }
+.side-toggle,
+.side-panel-head,
+.side-backdrop { display: none; }
+
+@media (min-width: 901px) {
+  .side {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .side::-webkit-scrollbar { display: none; }
+}
+
+@media (max-width: 900px) {
+  .app-shell { display: block; }
+
+  /* Top bar */
+  .side {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    /* no backdrop-filter: it would make the fixed drawer position relative to this bar */
+    background: rgba(247, 242, 234, .97);
+  }
+  .brand { font-size: 24px; }
+  .brand-flower { width: 30px; height: 30px; font-size: 15px; }
+
+  .side-toggle {
+    display: grid;
+    align-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    padding: 0 11px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: #fff8;
+    cursor: pointer;
+  }
+  .side-toggle span {
+    display: block;
+    height: 1.5px;
+    border-radius: 2px;
+    background: var(--ink);
+  }
+  .side-toggle span:nth-child(2) { width: 70%; }
+  .side-toggle:focus-visible,
+  .side-close:focus-visible,
+  .side .nav:focus-visible {
+    outline: 3px solid var(--sage-dark);
+    outline-offset: 2px;
+  }
+
+  /* Drawer */
+  .side .side-panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    width: min(300px, 84vw);
+    padding: 18px 20px 26px;
+    background: var(--cream);
+    border-right: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition: transform .28s ease, visibility 0s linear .28s;
+  }
+  .side-open .side .side-panel {
+    transform: none;
+    visibility: visible;
+    transition: transform .28s ease, visibility 0s;
+  }
+
+  .side .side-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .side-close {
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    font: 26px/1 "DM Sans", sans-serif;
+    cursor: pointer;
+  }
+  .side-close:hover { background: #0000000a; }
+
+  /* Undo the old horizontal-strip rules from styles.css */
+  .side .side-panel nav {
+    display: grid;
+    gap: 4px;
+    margin: 16px 0 0;
+    overflow: visible;
+  }
+  .side .side-panel .nav { white-space: normal; padding: 12px; }
+  .side .side-panel .side-note {
+    display: block;
+    margin-top: auto;
+    padding-top: 20px;
+  }
+  .side .side-panel .side-note p { font-size: 17px; }
+
+  .side-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(41, 40, 35, .28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .28s ease;
+  }
+  .side-open .side-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .side-open { overflow: hidden; }
+
+  main { padding: 28px clamp(18px, 4vw, 40px) 50px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .side .side-panel,
+  .side-backdrop { transition: none !important; }
+}
+
+/* ---------- Phones: bottom tab bar + "More" bottom sheet ---------- */
+.tabbar { display: none; }
+
+@media (max-width: 700px) {
+  /* Top bar is just the brand now; navigation lives at the bottom */
+  .side { position: static; padding: 14px 18px; background: transparent; }
+  .side-toggle { display: none; }
+
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 35; /* below .side (40) so the sheet and backdrop cover it */
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    background: rgba(250, 247, 241, .97);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -10px 30px rgba(70, 59, 45, .06);
+  }
+  .tabbar .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    min-width: 0;
+    padding: 7px 2px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--muted);
+    font: 500 10.5px "DM Sans", sans-serif;
+    text-align: center;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tabbar .tab span {
+    display: block;
+    width: auto;
+    font-size: 19px;
+    line-height: 1;
+  }
+  .tabbar .tab.active,
+  .tabbar .tab-more[aria-expanded="true"] {
+    background: #fff;
+    color: var(--ink);
+  }
+  .tabbar .tab:focus-visible { outline: 3px solid var(--sage-dark); outline-offset: -3px; }
+
+  /* Keep content, toast and install prompt clear of the bar */
+  main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  #toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  #toast:not(.show) { opacity: 0; visibility: hidden; }
+  .install-prompt { bottom: calc(80px + env(safe-area-inset-bottom)); }
+
+  /* Drawer becomes a bottom sheet */
+  .side .side-panel {
+    top: auto;
+    right: 0;
+    width: auto;
+    max-height: 82dvh;
+    padding: 10px 20px calc(22px + env(safe-area-inset-bottom));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 26px 26px 0 0;
+    transform: translateY(105%);
+  }
+  .side .side-panel::before {
+    content: "";
+    display: block;
+    width: 38px;
+    height: 4px;
+    margin: 0 auto 10px;
+    border-radius: 4px;
+    background: var(--line);
+    flex: none;
+  }
+  .side .side-panel .side-note { margin-top: 18px; }
+}
