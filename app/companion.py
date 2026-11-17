@@ -20,9 +20,13 @@ def demo_reflection(req):
     ack,feeling,step=options[req.moment]
     accents={"sentinel":"We can keep this steady and close.","duelist":"We only need the next move, not the whole path.","strategist":"We can separate the signal from the noise.","healer":"There is room for this without rushing it away.","wanderer":"We can meet this moment without forcing an answer."}
     if req.agent: ack=f"{accents[req.agent]} {ack}"
-    return ReflectionResponse(acknowledgement=ack,feeling=feeling,controllable=["What you do in the next ten minutes","Whether you ask someone for company"],can_wait=["Understanding the whole situation","Being productive"],next_step=step,mode="demo")
+    return ReflectionResponse(acknowledgement=ack,feeling=feeling,controllable=["What you do in the next ten minutes","Whether you ask someone for company"],can_wait=["Understanding the whole situation","Being productive"],next_step=step,mode="demo",safety="support")
 
 def reflect(req: ReflectionRequest):
     if is_urgent(req.text) or not os.getenv("OPENAI_API_KEY"): return demo_reflection(req)
-    response=OpenAI().responses.create(model=os.getenv("OPENAI_MODEL","gpt-5.6"),instructions=SYSTEM,input=json.dumps(req.model_dump()),text={"format":{"type":"json_schema","name":"enough_reflection","strict":True,"schema":ReflectionResponse.model_json_schema()}})
-    result=ReflectionResponse.model_validate_json(response.output_text); result.mode=os.getenv("OPENAI_MODEL","gpt-5.6"); return result
+    try:
+        response=OpenAI(timeout=20).responses.create(model=os.getenv("OPENAI_MODEL","gpt-5.6"),instructions=SYSTEM,input=json.dumps(req.model_dump()),text={"format":{"type":"json_schema","name":"enough_reflection","strict":True,"schema":ReflectionResponse.model_json_schema()}})
+        result=ReflectionResponse.model_validate_json(response.output_text); result.mode=os.getenv("OPENAI_MODEL","gpt-5.6"); return result
+    except Exception:
+        # Never show an error to someone mid-moment: fall back to the built-in reflection
+        return demo_reflection(req)
