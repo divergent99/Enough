@@ -225,7 +225,6 @@
   /* Keep content, toast and install prompt clear of the bar */
   main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   #toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
-  #toast:not(.show) { opacity: 0; visibility: hidden; }
   .install-prompt { bottom: calc(80px + env(safe-area-inset-bottom)); }
 
   /* Drawer becomes a bottom sheet */

@@ -1,0 +1,114 @@
+/* Small UI polish: form controls, dialogs, wrapping on phones */
+
+/* ---------- Dropdowns ---------- */
+.journal-footer select,
+.light-settings select {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 44px;
+  padding: 10px 40px 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--cream) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23777268' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 15px center / 12px 8px;
+  color: var(--ink);
+  font: 14px "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.journal-footer select { min-width: 180px; }
+.journal-footer select:hover,
+.light-settings select:hover,
+.light-settings input:hover { border-color: #c4b9a8; }
+
+.journal-footer select:focus-visible,
+.light-settings select:focus-visible,
+.light-settings input:focus-visible {
+  outline: none;
+  border-color: var(--sage-dark);
+  box-shadow: 0 0 0 3px rgba(82, 102, 85, .16);
+}
+
+/* ---------- Time + date fields: match the app font ---------- */
+.light-settings input[type="time"],
+.light-settings input[type="email"] {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font: 14px "DM Sans", sans-serif;
+  color: var(--ink);
+}
+#memoryDate {
+  font: 15px "DM Sans", sans-serif;
+  color: var(--muted);
+  padding: 14px 0;
+}
+#memoryDate:focus { color: var(--ink); border-bottom-color: var(--sage-dark); }
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: .5;
+  cursor: pointer;
+}
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: .85; }
+
+/* ---------- Notification status line ---------- */
+.notification-status {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ---------- File input (companion portrait) ---------- */
+.portrait-upload input[type="file"] { color: var(--muted); cursor: pointer; }
+.portrait-upload input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #e4ddd1;
+  color: var(--ink);
+  font: 500 12px "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.portrait-upload input[type="file"]::file-selector-button:hover { background: #dad1c3; }
+
+/* ---------- Dialogs ---------- */
+dialog:focus { outline: none; }
+.dialog-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: var(--ink);
+  line-height: 1;
+  transition: background .15s ease;
+}
+.dialog-close:hover { background: rgba(0, 0, 0, .05); }
+.dialog-close:focus { outline: none; }
+.dialog-close:focus-visible { outline: 2px solid var(--sage-dark); outline-offset: 2px; }
+
+/* ---------- Toast: fully hidden until shown (no sliver peeking at the bottom) ---------- */
+#toast:not(.show) { opacity: 0; visibility: hidden; }
+
+/* ---------- Phones: stop buttons and pills wrapping onto two lines ---------- */
+.section-head .soft,
+.section-head .toggle,
+.local-badge,
+.verified,
+.header-actions .soft,
+.header-actions .plain-btn { white-space: nowrap; flex-shrink: 0; }
+
+@media (max-width: 700px) {
+  header { flex-direction: column-reverse; gap: 16px; }
+  .header-actions {
+    flex-direction: row;
+    align-self: flex-end;
+    align-items: center;
+    gap: 14px;
+  }
+  .account-btn { padding: 8px 14px; font-size: 12px; }
+  .section-head .soft { padding: 11px 16px; }
+}
