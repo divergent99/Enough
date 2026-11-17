@@ -38,7 +38,7 @@ def test_grounding_interaction_assets_are_cache_busted():
     page=client.get('/').text
     css=client.get('/static/interaction-fix.css').text
     script=client.get('/static/app.js').text
-    assert 'app.js?v=14' in page and '[hidden]{display:none!important}' in css
+    assert 'app.js?v=15' in page and '[hidden]{display:none!important}' in css
     assert 'startExercise' in script and "$('exerciseNext').addEventListener" in script
 def test_notification_diagnostic_uses_direct_service_worker_api():
     script=client.get('/static/app.js').text
